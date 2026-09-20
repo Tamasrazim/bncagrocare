@@ -28,6 +28,8 @@ The PWA provides:
 - Browser print output
 - Local draft persistence with IndexedDB
 - JSON backup for the current invoice
+- Invoice history with load, copy and delete actions
+- Automatic invoice numbering for saved invoices
 - Installable PWA shell
 
 Nothing in the PWA edits the original Excel workbook. The existing demo.xlsx remains a reference file.
