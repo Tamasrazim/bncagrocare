@@ -5,6 +5,6 @@ self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(keys=>Promise
 self.addEventListener('fetch',e=>{
   if(e.request.method!=='GET')return;
   const u=new URL(e.request.url);
-  if(u.origin!==self.location.origin||!u.pathname.startsWith('/invoice/'))return;
+  if(u.origin!==self.location.origin||!u.href.startsWith(self.registration.scope))return;
   e.respondWith(caches.match(e.request).then(c=>c||fetch(e.request).then(r=>{caches.open(CACHE).then(x=>x.put(e.request,r.clone()));return r})));
 });
