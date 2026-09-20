@@ -1,6 +1,6 @@
 (()=>{"use strict";
 const $=s=>document.querySelector(s);
-const DB_NAME="bnc-invoice-pdf",DB_VERSION=2;
+const DB_NAME="bnc-invoice-exact-sheet",DB_VERSION=2;
 const TEMPLATE_URL="../invoice.pdf";
 const PDF_FIELDS={
  ref:"header_B4_L4",invoiceNo:"invoice_number",date:"invoice_date",
