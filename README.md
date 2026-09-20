@@ -6,35 +6,29 @@ BNC AgroCare website and invoice PWA.
 
 ## Invoice PWA
 
-The spreadsheet is no longer the working interface.
-
-Use the form-based invoice app instead:
-
-https://tamasrazim.github.io/bncagrocare/invoice/
+The working interface is PDF-first.
 
 Workflow:
 
-**Fill the boxes → Live paper preview → Print**
+**Fill the boxes → calculate automatically → generate the real PDF → preview the PDF → open/print or save PDF**
 
 The PWA provides:
 
-- BNC AgroCare invoice header and official-details fields
-- Invoice number and dates
-- Customer / buyer boxes
-- Add/remove product rows
-- Quantity × unit price calculations
-- Discount and tax fields
-- Notes / terms
-- Prepared-by field
-- Live A4 paper preview
-- Browser print output
+- Original BNC invoice PDF used as the page-1 template
+- Named AcroForm fields filled directly where the template exposes them
+- Automatic amount calculations: Ctn × Rate / Ctn, left/right subtotals, total cartons, total taka, commission %, final total and amount in words
+- Four starting product rows per side
+- Automatic SL 5, SL 6, and onward when more products are entered
+- Empty product rows omitted from the generated PDF
+- Overflow products rendered on continuation PDF pages without changing the original page-1 template
+- Live PDF preview in the browser
+- Open / print and Save PDF actions
 - Local draft persistence with IndexedDB
 - JSON backup for the current invoice
 - Invoice history with load, copy and delete actions
-- Automatic invoice numbering for saved invoices
 - Installable PWA shell
 
-Nothing in the PWA edits the original Excel workbook. The existing demo.xlsx remains a reference file.
+The original Excel files remain reference/demo material; the working invoice interface no longer uses HTML as the paper preview and does not edit the original workbook.
 
 ## Company website
 
