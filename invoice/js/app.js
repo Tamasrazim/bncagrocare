@@ -26,7 +26,7 @@ function nextInvoiceNumber(){
   localStorage.setItem(key,String(current+1));
   return next;
 }
-function syncInvoiceCounter(number){const m=String(number||'').trim().match(/^INV-(\\d+)$/i);if(!m)return;const next=Math.max(1,Number(localStorage.getItem('bnc-invoice-next-number')||1)),needed=Number(m[1])+1;if(needed>next)localStorage.setItem('bnc-invoice-next-number',String(needed))}
+function syncInvoiceCounter(number){const m=String(number||'').trim().match(/^INV-(\d+)$/i);if(!m)return;const next=Math.max(1,Number(localStorage.getItem('bnc-invoice-next-number')||1)),needed=Number(m[1])+1;if(needed>next)localStorage.setItem('bnc-invoice-next-number',String(needed))}
 function ensureInvoiceNumber(){if(!state.invoice.number)state.invoice.number=nextInvoiceNumber();syncInvoiceCounter(state.invoice.number)}
 function newInvoice(){const company=Object.assign({},state.company);state.company=company;state.invoice={number:nextInvoiceNumber(),date:localDate(),due:'',customer:'',customerDetails:'',notes:'',preparedBy:''};state.items=[{name:'',qty:1,price:0}];state.discount=0;state.tax=0;fillForm();saveDraft();toast('New invoice · '+state.invoice.number)}
 function loadDraft(){return new Promise((resolve,reject)=>{if(!db){resolve(false);return}const req=db.transaction('drafts').objectStore('drafts').get('current');req.onsuccess=()=>{if(req.result&&req.result.data){Object.assign(state,req.result.data);fillForm();toast('Draft loaded');resolve(true)}else resolve(false)};req.onerror=()=>reject(req.error)})}
