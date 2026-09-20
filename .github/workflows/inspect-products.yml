@@ -1,0 +1,47 @@
+name: Inspect BNC product image
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install OCR tools
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y tesseract-ocr tesseract-ocr-eng imagemagick
+
+      - name: Prepare image and OCR
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p inspect
+
+          identify unnamed.jpg > inspect/image-info.txt
+
+          convert unnamed.jpg -colorspace Gray -resize 200% -auto-level inspect/gray.png
+          convert unnamed.jpg -colorspace Gray -resize 300% -contrast-stretch 0x12% inspect/contrast.png
+          convert inspect/gray.png -sharpen 0x1 -threshold 82% inspect/threshold.png
+
+          for f in unnamed.jpg inspect/gray.png inspect/contrast.png inspect/threshold.png; do
+            base="$(basename "$f" | sed 's/\..*$//')"
+            for psm in 4 6 11 12; do
+              tesseract "$f" "inspect/${base}_psm${psm}" --oem 3 --psm "$psm" 2>/dev/null || true
+            done
+          done
+
+          cat inspect/*_psm*.txt > inspect/all-ocr.txt
+
+      - name: Upload inspection artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: bnc-product-image-inspection
+          path: |
+            unnamed.jpg
+            inspect/
+          retention-days: 1
+          if-no-files-found: error
