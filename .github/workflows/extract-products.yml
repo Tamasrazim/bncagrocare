@@ -38,8 +38,8 @@ jobs:
 
           identify unnamed.jpg | tee ocr_work/image-info.txt
 
-          magick unnamed.jpg -colorspace Gray -resize 250% -auto-level ocr_work/gray.png
-          magick ocr_work/gray.png -threshold 78% ocr_work/thresh.png
+          convert unnamed.jpg -colorspace Gray -resize 250% -auto-level ocr_work/gray.png
+          convert ocr_work/gray.png -threshold 78% ocr_work/thresh.png
 
           : > ocr_work/all-ocr.txt
           for f in unnamed.jpg ocr_work/gray.png ocr_work/thresh.png; do
