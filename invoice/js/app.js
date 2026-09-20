@@ -3,7 +3,7 @@ const $=s=>document.querySelector(s);
 const DB_NAME="bnc-invoice-pdf",DB_VERSION=2;
 const TEMPLATE_URL="../invoice.pdf";
 const PDF_FIELDS={
- ref:"header_B4_L4",invoiceNo:["invoice_number","header_C5_H5"],date:"invoice_date",
+ ref:"header_B4_L4",invoiceNo:"invoice_number",date:"invoice_date",
  repName:"header_I6_L6",repRole:"header_I7_L7",repMob:"header_I8_L8",
  trader:"dealer_trader_name",buyer:"dealer_buyer_name",address:"dealer_address",dealerMob:"dealer_mobile",
  rowsLeft:10,rowsRight:10
@@ -126,7 +126,7 @@ function fillProductFields(form,side,items){
 function fillTemplateForm(form){
   const t=totals();ensureNumber();state.amountWords=numberWords(t.finalTotal);
   safeTextField(form,PDF_FIELDS.ref,state.ref);
-  PDF_FIELDS.invoiceNo.forEach(n=>safeTextField(form,n,state.invoiceNo));
+  safeTextField(form,PDF_FIELDS.invoiceNo,state.invoiceNo);
   safeTextField(form,PDF_FIELDS.date,displayDate(state.date));
   safeTextField(form,PDF_FIELDS.repName,state.repName);safeTextField(form,PDF_FIELDS.repRole,state.repRole);safeTextField(form,PDF_FIELDS.repMob,state.repMob);
   safeTextField(form,PDF_FIELDS.trader,state.traderName);safeTextField(form,PDF_FIELDS.buyer,state.buyerName);safeTextField(form,PDF_FIELDS.address,state.address);safeTextField(form,PDF_FIELDS.dealerMob,state.dealerMobile);
@@ -153,14 +153,16 @@ async function addContinuationPages(doc){
   const left=state.left.filter(hasData),right=state.right.filter(hasData),max=Math.max(left.length,right.length);
   if(max<=4)return;
   const regular=await doc.embedFont(PDFLib.StandardFonts.Helvetica),bold=await doc.embedFont(PDFLib.StandardFonts.HelveticaBold);
-  const xs=[22.9,35.6,152.5,172.7,211.9,259.5,272.6,334.4,393.9,412.5,462.4,521.5];
+  const tableX=22.9,tableW=498.6;
+  const ratios=[5.285,22.140625,20,7.285156,14.140625,17.140625,4.7109375,22.285156,21.425781,6.7109375,18,21.285156];
+  const ratioTotal=ratios.reduce((a,b)=>a+b,0),widths=ratios.map(r=>tableW*r/ratioTotal);
+  const xs=[tableX];for(let i=0;i<widths.length;i++)xs.push(xs[i]+widths[i]);
   const rowH=20, tableTop=742, headerH=28;
   for(let offset=4;offset<max;offset+=8){
     const page=doc.addPage([595.30396,841.88977]);
     page.drawText("BNC AGRO CARE",{x:24,y:803,size:22,font:bold,color:PDFLib.rgb(0,0,0)});
     page.drawText("Invoice No: "+String(state.invoiceNo).padStart(4,"0")+"    Ref: "+state.ref,{x:24,y:781,size:9,font:regular});
     page.drawText("Continuation",{x:470,y:803,size:9,font:bold,color:PDFLib.rgb(0,0,0)});
-    const widths=xs.slice(1).map((x,i)=>x-xs[i]);
     const heads=["SL","Products Name","Pack Size","Ctn","Rate / Ctn","Amount Tk.","SL","Products Name","Pack Size","Ctn","Rate / Ctn","Amount Tk."];
     let y=tableTop-headerH;
     for(let c=0;c<12;c++)drawCell(page,xs[c],y,widths[c],headerH,heads[c],7,bold,"center",bold);
