@@ -1,7 +1,8 @@
 (function(){
 'use strict';
 const $=s=>document.querySelector(s),$$=s=>Array.from(document.querySelectorAll(s));
-const state={company:{name:'BNC AgroCare',details:''},invoice:{number:'',date:new Date().toISOString().slice(0,10),due:'',customer:'',customerDetails:'',notes:'',preparedBy:''},items:[{name:'',qty:1,price:0}],discount:0,tax:0};
+function localDate(){const d=new Date(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');return d.getFullYear()+'-'+m+'-'+day}
+const state={company:{name:'BNC AgroCare',details:''},invoice:{number:'',date:localDate(),due:'',customer:'',customerDetails:'',notes:'',preparedBy:''},items:[{name:'',qty:1,price:0}],discount:0,tax:0};
 const DRAFTS='bnc-invoice-drafts',DB_VERSION=2;
 let db,saveTimer;
 
@@ -21,7 +22,7 @@ function nextInvoiceNumber(){
   localStorage.setItem(key,String(current+1));
   return next;
 }
-function newInvoice(){const company=Object.assign({},state.company);state.company=company;state.invoice={number:nextInvoiceNumber(),date:new Date().toISOString().slice(0,10),due:'',customer:'',customerDetails:'',notes:'',preparedBy:''};state.items=[{name:'',qty:1,price:0}];state.discount=0;state.tax=0;fillForm();saveDraft();toast('New invoice · '+state.invoice.number)}
+function newInvoice(){const company=Object.assign({},state.company);state.company=company;state.invoice={number:nextInvoiceNumber(),date:localDate(),due:'',customer:'',customerDetails:'',notes:'',preparedBy:''};state.items=[{name:'',qty:1,price:0}];state.discount=0;state.tax=0;fillForm();saveDraft();toast('New invoice · '+state.invoice.number)}
 function loadDraft(){return new Promise((resolve,reject)=>{if(!db){resolve(false);return}const req=db.transaction('drafts').objectStore('drafts').get('current');req.onsuccess=()=>{if(req.result&&req.result.data){Object.assign(state,req.result.data);fillForm();toast('Draft loaded');resolve(true)}else resolve(false)};req.onerror=()=>reject(req.error)})}
 function saveInvoiceRecord(){readForm();if(!db)return;const now=Date.now(),data=JSON.parse(JSON.stringify(state)),id=data.invoice.number||('DRAFT-'+now);const req=db.transaction('invoices','readwrite').objectStore('invoices').put({id,invoiceNumber:data.invoice.number||id,customer:data.invoice.customer||'Customer / Buyer',total:totals().grand,updatedAt:now,data});req.onsuccess=()=>{renderHistory();toast('Invoice saved · '+id)};req.onerror=()=>toast('Could not save invoice')}
 function loadInvoiceRecord(id){if(!db)return;const req=db.transaction('invoices').objectStore('invoices').get(id);req.onsuccess=()=>{if(!req.result)return;Object.assign(state,req.result.data);fillForm();$('#saveState').textContent='Loaded from history';toast('Invoice loaded · '+(state.invoice.number||id))}}
