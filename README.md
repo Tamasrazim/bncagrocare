@@ -1,5 +1,7 @@
 # BNC AgroCare
 
+> Backup mirror: Canonical BNC source is maintained in Tamasrazim/tamasrazim.github.io under projects/bncagrocare/. Keep this repository as the deployment/backup copy.
+
 BNC AgroCare website and invoice PWA.
 
 ## Invoice PWA
