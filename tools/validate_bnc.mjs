@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import { execFileSync } from 'node:child_process';
 
-const root='.';
+const root='projects/bncagrocare';
 const read=p=>fs.readFileSync(p,'utf8');
 const must=(ok,msg)=>{if(!ok)throw new Error(msg);console.log('PASS',msg)};
 
@@ -54,4 +54,4 @@ must(serviceWorker.includes('caches.match(FALLBACK)'),'service worker has an off
 must(serviceWorker.includes('invoice.pdf'),'service worker pre-caches the locked invoice template');
 execFileSync(process.execPath,['--check',root+'/invoice/sw.js'],{stdio:'inherit'});
 
-console.log('BNC backup validation complete');
+console.log('BNC validation complete');
