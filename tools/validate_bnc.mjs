@@ -5,91 +5,41 @@ const root='.';
 const read=p=>fs.readFileSync(p,'utf8');
 const must=(ok,msg)=>{if(!ok)throw new Error(msg);console.log('PASS',msg)};
 
-for(const p of ['index.html','FB_IMG_1789811599210.jpg','reference/demo.xlsx','exactsheet.xlsx','invoice.pdf','invoice/index.html','invoice/js/app.js','invoice/css/app.css','invoice/sw.js','invoice/manifest.webmanifest']) must(fs.existsSync(p),p+' exists');
-const invoicePdfTree=execFileSync('git',['ls-tree','-r','HEAD','--','invoice.pdf'],{encoding:'utf8'}).trim().split(/\s+/);
-must(invoicePdfTree[2]==='46c9ce8303a0a4abdf7599ba1479b298c26fc6fe','invoice.pdf immutable template SHA matches locked source');
-
-
-must(fs.existsSync('exactsheet.xlsx'),'exactsheet.xlsx exists');
-
-const sheetInspect=String.raw`
-import zipfile, xml.etree.ElementTree as ET
-from pathlib import Path
-
-p=Path("exactsheet.xlsx")
-ns={"main":"http://schemas.openxmlformats.org/spreadsheetml/2006/main","r":"http://schemas.openxmlformats.org/officeDocument/2006/relationships"}
-with zipfile.ZipFile(p) as z:
-    ss=[]
-    if "xl/sharedStrings.xml" in z.namelist():
-        root=ET.fromstring(z.read("xl/sharedStrings.xml"))
-        for si in root.findall("main:si",ns):
-            ss.append("".join(t.text or "" for t in si.iterfind(".//main:t",ns)))
-    ws=ET.fromstring(z.read("xl/worksheets/sheet1.xml"))
-    dim=ws.find("main:dimension",ns)
-    print("EXACTSHEET DIMENSION:",dim.attrib.get("ref",""))
-    print("EXACTSHEET MERGES:",",".join(x.attrib["ref"] for x in ws.findall("main:mergeCells/main:mergeCell",ns)) or "(none)")
-    cols=ws.find("main:cols",ns)
-    if cols is not None:
-        print("EXACTSHEET COLUMN WIDTHS:")
-        for x in cols.findall("main:col",ns):
-            print(" ",x.attrib)
-    print("EXACTSHEET ROW HEIGHTS:")
-    for row in ws.findall("main:sheetData/main:row",ns):
-        if "ht" in row.attrib:
-            print(" ",row.attrib["r"],row.attrib["ht"],row.attrib.get("customHeight",""))
-    pp=ws.find("main:sheetPr/main:pageSetUpPr",ns)
-    ps=ws.find("main:pageMargins",ns)
-    page=ws.find("main:pageSetup",ns)
-    if pp is not None: print("EXACTSHEET PAGE SETUP PR:",pp.attrib)
-    if ps is not None: print("EXACTSHEET PAGE MARGINS:",ps.attrib)
-    if page is not None: print("EXACTSHEET PAGE SETUP:",page.attrib)
-    panes=ws.find("main:sheetViews/main:sheetView/main:pane",ns)
-    if panes is not None: print("EXACTSHEET FREEZE PANE:",panes.attrib)
-    print("EXACTSHEET CELLS:")
-    for cell in ws.findall("main:sheetData/main:row/main:c",ns):
-        ref=cell.attrib["r"]
-        v=cell.find("main:v",ns)
-        isel=cell.find("main:is",ns)
-        t=cell.attrib.get("t")
-        if isel is not None:
-            val="".join(x.text or "" for x in isel.iterfind(".//main:t",ns))
-        elif v is not None:
-            raw=v.text or ""
-            val=ss[int(raw)] if t=="s" and raw.isdigit() and int(raw)<len(ss) else raw
-        else:
-            val=""
-        if val!="":
-            print(f" {ref}={val!r} style={cell.attrib.get('s','0')}")
-`;
-execFileSync('python3',['-c',sheetInspect],{stdio:'inherit'});
-console.log('PASS exactsheet inspection complete');
+for(const p of ['index.html','FB_IMG_1789811599210.jpg','invoice.pdf','invoice/index.html','invoice/js/app.js','invoice/css/app.css','invoice/sw.js','invoice/manifest.webmanifest','invoice/icons/icon.svg']) must(fs.existsSync(p),p+' exists');
+const pdfTree=execFileSync('git',['ls-tree','-r','HEAD','--','invoice.pdf'],{encoding:'utf8'}).trim().split(/\s+/);
+must(pdfTree[2]==='46c9ce8303a0a4abdf7599ba1479b298c26fc6fe','invoice.pdf immutable template SHA matches locked source');
 
 const site=read('index.html');
 must(site.includes('BNC AgroCare'),'business page identifies BNC AgroCare');
 must(site.includes('href="invoice/"'),'business page links to Invoice PWA');
-must(site.includes('exactsheet.xlsx'),'business page links to exactsheet');
 
 const invoice=read('invoice/index.html');
-must(invoice.includes('id="saveInvoice"'),'invoice save control exists');
-must(invoice.includes('id="downloadXlsxBtn"'),'invoice XLSX download control exists');
-must(invoice.includes('id="importBtn"'),'invoice JSON import exists');
-must(invoice.includes('exactsheet.xlsx'),'invoice references exactsheet');
-must(!invoice.includes('../site/'),'invoice has no stale staging path');
+must(invoice.includes('id="previewBtn"'),'invoice generate control exists');
+must(invoice.includes('id="saveBtn"'),'invoice save control exists');
+must(invoice.includes('id="jsonInBtn"'),'invoice JSON import control exists');
+must(invoice.includes('serviceWorker'),'invoice registers its own service worker');
+must(invoice.includes('../invoice.pdf'),'invoice references local locked PDF template');
+must(invoice.includes('pdf-lib@1.17.1'),'invoice includes the pinned PDF engine');
+
+const js=read('invoice/js/app.js');
+must(js.includes('const TEMPLATE="../invoice.pdf"'),'invoice uses the local locked PDF template');
+must(js.includes('fetch(TEMPLATE'),'invoice loads the locked template at runtime');
+must(js.includes('header_B4_L4'),'invoice maps the template ref field explicitly');
+must(js.includes('dealer_trader_name'),'invoice maps trader field explicitly');
+must(js.includes('function drawSummary'),'invoice has dynamic summary drawing');
+must(js.includes('const X=[22.883,35.553,96.994'),'invoice uses the corrected template geometry');
+must(js.includes('MAX_EXTRAROWS=10'),'invoice bounds same-page dynamic expansion');
+must(js.includes('function continuationPage'),'invoice has a safe overflow path');
+execFileSync(process.execPath,['--check','invoice/js/app.js'],{stdio:'inherit'});
 
 const manifest=JSON.parse(read('invoice/manifest.webmanifest'));
 must(manifest.start_url==='./','PWA start_url is relative');
 must(manifest.scope==='./','PWA scope is relative');
-must(read('invoice/index.html').includes('xlsx-js-style@1.2.0'),'invoice uses exactsheet XLSX engine');
-must(read('invoice/js/app.js').includes('XLSX.read'),'invoice reads exactsheet workbook');
-must(read('invoice/js/app.js').includes('shiftWorkbookRows'),'invoice can expand workbook rows');
-must(!read('invoice/js/app.js').includes('PDFLib'),'invoice app has no PDF engine dependency');
+must(Array.isArray(manifest.icons)&&manifest.icons.length>0,'PWA icon is declared');
 
 const sw=read('invoice/sw.js');
-must(/const CACHE='bnc-invoice-v\d+'/.test(sw),'service worker cache is versioned');
-must(sw.includes('self.registration.scope'),'service worker uses registration scope');
-must(sw.includes("caches.match(FALLBACK_URL)"),'offline navigation fallback exists');
-
-execFileSync(process.execPath,['--check','invoice/js/app.js'],{stdio:'inherit'});
+must(/bnc-invoice-v\d+/.test(sw),'service worker cache is versioned');
+must(sw.includes('self.registration.scope'),'service worker derives its navigation scope');
+must(sw.includes('caches.match(FALLBACK_URL)'),'service worker has offline navigation fallback');
 execFileSync(process.execPath,['--check','invoice/sw.js'],{stdio:'inherit'});
-console.log('PASS invoice JavaScript syntax');
 console.log('BNC backup validation complete');
