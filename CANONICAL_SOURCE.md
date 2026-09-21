@@ -10,3 +10,5 @@ Canonical workflow:
 **Edit in the Tamasrazim main repository → verify → mirror to this backup repository.**
 
 The original `demo.xlsx` remains a reference and is not the working invoice interface.
+
+**Immutable asset:** `invoice.pdf` is the locked original BNC invoice template. Never modify or replace it.
