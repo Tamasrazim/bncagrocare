@@ -87,7 +87,7 @@ must(!read('invoice/js/app.js').includes('PDFLib'),'invoice app has no PDF engin
 const sw=read('invoice/sw.js');
 must(/const CACHE='bnc-invoice-v\d+'/.test(sw),'service worker cache is versioned');
 must(sw.includes('self.registration.scope'),'service worker uses registration scope');
-must(sw.includes("caches.match('./index.html')"),'offline navigation fallback exists');
+must(sw.includes("caches.match(FALLBACK_URL)"),'offline navigation fallback exists');
 
 execFileSync(process.execPath,['--check','invoice/js/app.js'],{stdio:'inherit'});
 execFileSync(process.execPath,['--check','invoice/sw.js'],{stdio:'inherit'});
