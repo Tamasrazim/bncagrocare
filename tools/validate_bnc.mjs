@@ -26,7 +26,8 @@ must(js.includes('const TEMPLATE="../invoice.pdf"'),'invoice uses the local lock
 must(js.includes('fetch(TEMPLATE'),'invoice loads the locked template at runtime');
 must(js.includes('header_B4_L4'),'invoice maps the template ref field explicitly');
 must(js.includes('dealer_trader_name'),'invoice maps trader field explicitly');
-must(js.includes('function drawSummary'),'invoice has dynamic summary drawing');
+must(js.includes('function totals()')&&js.includes('leftAmount')&&js.includes('rightAmount'),'invoice calculates the left/right summary amounts');
+must(js.includes('if(!drawn)drawSummary(page,totals(),0,font,bold)'),'invoice always redraws the summary when no extra data rows exist');
 must(js.includes('const X=[22.883,35.553,96.994'),'invoice uses the corrected template geometry');
 must(js.includes('MAX_EXTRAROWS=10'),'invoice bounds same-page dynamic expansion');
 must(js.includes('function continuationPage'),'invoice has a safe overflow path');
@@ -40,6 +41,6 @@ must(Array.isArray(manifest.icons)&&manifest.icons.length>0,'PWA icon is declare
 const sw=read('invoice/sw.js');
 must(/bnc-invoice-v\d+/.test(sw),'service worker cache is versioned');
 must(sw.includes('self.registration.scope'),'service worker derives its navigation scope');
-must(sw.includes('caches.match(FALLBACK_URL)'),'service worker has offline navigation fallback');
+must(sw.includes('caches.match(FALLBACK)'),'service worker has offline navigation fallback');
 execFileSync(process.execPath,['--check','invoice/sw.js'],{stdio:'inherit'});
 console.log('BNC backup validation complete');
