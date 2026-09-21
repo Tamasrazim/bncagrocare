@@ -67,17 +67,22 @@ console.log('PASS exactsheet inspection complete');
 const site=read('index.html');
 must(site.includes('BNC AgroCare'),'business page identifies BNC AgroCare');
 must(site.includes('href="invoice/"'),'business page links to Invoice PWA');
-must(site.includes('href="reference/demo.xlsx"'),'business page links to demo sheet');
+must(site.includes('exactsheet.xlsx'),'business page links to exactsheet');
 
 const invoice=read('invoice/index.html');
 must(invoice.includes('id="saveInvoice"'),'invoice save control exists');
+must(invoice.includes('id="downloadXlsxBtn"'),'invoice XLSX download control exists');
 must(invoice.includes('id="importBtn"'),'invoice JSON import exists');
-must(invoice.includes('href="../reference/demo.xlsx"'),'invoice points to demo sheet');
+must(invoice.includes('exactsheet.xlsx'),'invoice references exactsheet');
 must(!invoice.includes('../site/'),'invoice has no stale staging path');
 
 const manifest=JSON.parse(read('invoice/manifest.webmanifest'));
 must(manifest.start_url==='./','PWA start_url is relative');
 must(manifest.scope==='./','PWA scope is relative');
+must(read('invoice/index.html').includes('xlsx-js-style@1.2.0'),'invoice uses exactsheet XLSX engine');
+must(read('invoice/js/app.js').includes('XLSX.read'),'invoice reads exactsheet workbook');
+must(read('invoice/js/app.js').includes('shiftWorkbookRows'),'invoice can expand workbook rows');
+must(!read('invoice/js/app.js').includes('PDFLib'),'invoice app has no PDF engine dependency');
 
 const sw=read('invoice/sw.js');
 must(/const CACHE='bnc-invoice-v\d+'/.test(sw),'service worker cache is versioned');
