@@ -1,34 +1,27 @@
-# BNC AgroCare
+# BNC Agro Care
 
-BNC AgroCare is the canonical agriculture-focused project in this repository.
+BNC Agro Care is the canonical agriculture project inside the Tamasrazim main repository.
 
-> **Immutable invoice template:** `invoice.pdf` is the locked original BNC invoice template. The Invoice Studio reads it as the master document and never rewrites the source PDF.
+## Source hierarchy
 
-## Website
+1. BNCFINAL.xlsx — principal invoice-sheet reference.
+2. addProductRow.js — authoritative rule for inserting an invoice product row.
+3. products.js — shared product and pack-size data used by the public catalogue and Invoice Studio.
+4. invoice.pdf — immutable PDF master used for final document generation.
+5. invoice/ — local-first business UI.
 
-The public BNC site is a product-first business interface with:
-- the current BNC product names
-- exact pack-size options from the project reference
-- product/pack search
-- BNC reference imagery
-- direct access to Invoice Studio
+## Public site
+
+projects/bncagrocare/index.html
 
 ## Invoice Studio
 
-The PWA workflow is:
+projects/bncagrocare/invoice/
 
-**Customer details → product lines → live totals → A4 preview → generate/download**
+Base sheet: 4 rows per side / 8 product slots. Adding a row follows the spreadsheet rule: insert before the ST subtotal region, extend ST formulas, copy the row structure, and renumber left/right SL values.
 
-It includes:
-- the BNC product catalogue with pack-size suggestions
-- automatic CTN × RATE calculations
-- commission and final-total calculations
-- amount in words
-- dynamic product rows and continuation pages
-- local draft persistence with IndexedDB
-- saved invoice history
-- JSON export/import
-- installable/offline PWA shell
-- the locked original invoice PDF as the document master
+## Canonical / backup model
 
-The public website and Invoice Studio share one BNC visual system, while the invoice template remains unchanged.
+This personal repository is canonical. github.com/Tamasrazim/bncagrocare is the backup/deployment mirror.
+
+Edit here first -> verify -> mirror to backup.
