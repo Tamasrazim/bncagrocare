@@ -95,7 +95,10 @@ function snapshotRows(ws,startRow,lastRow,maxCol){
     const cells=[];
     for(let c=1;c<=maxCol;c++){
       const cell=row.getCell(c);
-      cells[c]={style:clone(cell.style),value:clone(cell.value)};
+      // A merged child contains an internal MergeValue object that references
+      // its master Cell. Never copy that object as an ordinary cell value.
+      const keepValue=!cell.isMerged||cell.master===cell;
+      cells[c]={style:clone(cell.style),value:keepValue?clone(cell.value):null};
     }
     rows[r]={
       height:row.height,
@@ -139,7 +142,10 @@ function copyRowSnapshot(targetRow,sourceRow,startRow,maxCol,keepValues=true){
 
 function clearRow(ws,rowNumber,maxCol){
   const row=ws.getRow(rowNumber);
-  for(let c=1;c<=maxCol;c++)row.getCell(c).value=null;
+  for(let c=1;c<=maxCol;c++){
+    const cell=row.getCell(c);
+    cell.value=null;
+  }
 }
 
 function shiftRowsDownWithoutSplice(ws,startRow){
@@ -152,7 +158,9 @@ function shiftRowsDownWithoutSplice(ws,startRow){
   // reconstruction and therefore avoids malformed Cell/Row objects.
   unmergeAll(ws,merges);
 
-  for(let r=last;r>=startRow;r--)copyRowSnapshot(ws.getRow(r+1),rows[r],startRow,maxCol,true);
+  for(let r=last;r>=startRow;r--){
+    copyRowSnapshot(ws.getRow(r+1),rows[r],startRow,maxCol,true);
+  }
 
   // The inserted row inherits the visual format of the row directly above ST,
   // but it contains no product values or formulas.
@@ -166,7 +174,8 @@ function shiftRowsDownWithoutSplice(ws,startRow){
 function rebuildTotals(ws,stRow){
   const totalsRow=stRow+1;
   [["D",4],["F",6],["L",12]].forEach(([letter,col])=>{
-    cellAt(ws,totalsRow,col).value={formula:"SUM("+letter+PRODUCT_START_ROW+":"+letter+stRow+")"};
+    const cell=cellAt(ws,totalsRow,col);
+    cell.value={formula:"SUM("+letter+PRODUCT_START_ROW+":"+letter+stRow+")"};
   });
 }
 
