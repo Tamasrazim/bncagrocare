@@ -1,3 +1,5 @@
+# Runs the BNC Agrocare project checks when its files change.
+
 name: BNC AgroCare Backup Check
 
 on:
