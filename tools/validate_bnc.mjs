@@ -19,9 +19,16 @@ for(const p of need){
   if(!fs.existsSync(root+"/"+p))throw Error("Missing required BNC asset");
 }
 
+const catalogue=fs.readFileSync(root+"/index.html","utf8");
 const html=fs.readFileSync(root+"/invoice/index.html","utf8");
 const js=fs.readFileSync(root+"/invoice/js/app.js","utf8");
 const row=fs.readFileSync(root+"/reference/addProductRow.js","utf8");
+
+// Keep the catalogue section and its rendered product grid on separate, unique IDs.
+const catalogueIds=Array.from(catalogue.matchAll(/id="([^"]+)"/g),match=>match[1]);
+const duplicateCatalogueIds=catalogueIds.filter((id,index)=>catalogueIds.indexOf(id)!==index);
+if(duplicateCatalogueIds.length)throw Error("Duplicate catalogue HTML IDs: "+duplicateCatalogueIds.join(", "));
+if(!catalogue.includes('id="productGrid"')||!catalogue.includes('$("#productGrid")'))throw Error("Product grid target missing");
 
 if(!html.includes("Download XLSX"))throw Error("XLSX download control missing");
 if(!js.includes("writeBuffer"))throw Error("XLSX export missing");
@@ -33,4 +40,4 @@ for(const file of ["invoice/js/app.js","invoice/sw.js","reference/addProductRow.
   execFileSync(process.execPath,["--check",root+"/"+file]);
 }
 
-console.log("BNC invoice validation passed");
+console.log("BNC catalogue and invoice validation passed");
