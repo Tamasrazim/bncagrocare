@@ -1,3 +1,5 @@
+' What this does: This is the Excel macro version of adding a new product row to the BNC worksheet.
+
 Attribute VB_Name = "modBNCInvoice"
 Option Explicit
 

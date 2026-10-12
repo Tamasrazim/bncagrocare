@@ -1,3 +1,5 @@
+// What this does: JavaScript version of the product-row helper, used to keep the spreadsheet workflow understandable and testable outside Excel.
+
 // BNC Agro Care — master invoice row helper
 (function(global){
 "use strict";

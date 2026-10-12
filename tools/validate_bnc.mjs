@@ -1,3 +1,5 @@
+// What this does: Checks that the BNC reference data and app files agree, helping catch mismatched product names, pack sizes, or missing files.
+
 import fs from "node:fs";
 import {execFileSync} from "node:child_process";
 
